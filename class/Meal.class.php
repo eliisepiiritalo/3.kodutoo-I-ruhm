@@ -1,102 +1,111 @@
-<?php
-class Meal{
+<?php 
+class Meal {
 	
 	private $connection;
 	
 	function __construct($mysqli){
 		
-		$this->connection=$mysqli;
+		$this->connection = $mysqli;
+		
 	}
+
+	/*TEISED FUNKTSIOONID */
 	function delete($id){
-		$stmt=$this->connection->prepare("UPDATE Calender SET deleted=NOW() WHERE id=? AND deleted IS NULL");
-		$stmt->bind_param("i", $id);
-		
-		//kas õnnestus salvestada
-		if($stmt->execute()){
-			//õnnestus
-			echo "Kustutamine õnnestus!";
-		}
-		$stmt->close();
-	}
-	
-	function update($id, $Gender, $Age, $MealClass, $date){
-		
-		
-		$stmt = $this->connection->prepare("UPDATE Calender SET Gender=?, Age=?, Meal=?, date=? WHERE id=? AND deleted IS NULL");
-		$stmt->bind_param("sissi",$Gender, $Age, $MealClass, $date, $id);
+
+		$stmt = $this->connection->prepare("UPDATE Calender SET deleted=NOW() WHERE id=? AND deleted IS NULL");
+		$stmt->bind_param("i",$id);
 		
 		// kas õnnestus salvestada
 		if($stmt->execute()){
 			// õnnestus
-			echo "Salvestus õnnestus!";
+			echo "kustutamine õnnestus!";
 		}
 		
 		$stmt->close();
+		
+		
 	}
-	
-	function get($q, $sort, $order){
-			$allowedSort=["id", "Gender", "Age", "Meal", "date"];
-				
-			if(!in_array($sort, $allowedSort)){
-				$sort="id";
-			}
-			$orderBy="ASC";
-			if($order=="DESC"){
-				$orderBy="DESC";
-			}
-			//echo "Sorteerin: ".$sort." ".$orderBy."";
-				
+		
+	function get($q, $sort, $order) {
+		
+		$allowedSort = ["id", "Gender", "Age", "MealClass", "date"];
+		
+		if(!in_array($sort, $allowedSort)){
+			// ei ole lubatud tulp
+			$sort = "id";
+		}
+		
+		$orderBy = "ASC";
+		
+		if ($order == "DESC") {
+			$orderBy = "DESC";
+		}
+		echo "Sorteerin: ".$sort." ".$orderBy." ";
+		
+		
 		//kas otsib
-		if($q!=""){
+		if ($q != "") {
 			
-			$stmt=$this->connection->prepare("
-			SELECT id, Gender, Age, Meal, date
-			FROM Calender
-			WHERE deleted IS NULL
-			AND (Gender LIKE ? OR Age LIKE ? OR Meal LIKE ? OR date LIKE ?)
-			ORDER BY $sort $orderBy
+			echo "Otsib: ".$q;
 			
+			$stmt = $this->connection->prepare("
+				SELECT id, Gender, Age, MealClass, date
+				FROM Calender
+				WHERE deleted IS NULL 
+				AND (Gender LIKE ? OR Age LIKE ? OR MealClass LIKE ? OR date LIKE ?)
+				ORDER BY $sort $orderBy
 			");
-			$searchWord="%".$q."%";
-			$stmt->bind_param("sssss", $searchWord, $searchWord, $searchWord, $searchWord, $searchWord);
+			$searchWord = "%".$q."%";
+			$stmt->bind_param("sisi", $searchWord, $searchWord, $searchWord, $searchWord);
 			
-		}else{
-			$stmt=$this->connection->prepare("
+		} else {
+			
+			$stmt = $this->connection->prepare("
 				SELECT id, Gender, Age, MealClass, date
 				FROM Calender
 				WHERE deleted IS NULL
 				ORDER BY $sort $orderBy
-			
 			");
 			
 		}
-	
+		
 		echo $this->connection->error;
+		
 		$stmt->bind_result($id, $Gender, $Age, $MealClass, $date);
 		$stmt->execute();
 		
-				//tekitan massiivi
-		$result=array();
-			//seni kuni on üks rida andmeid saada (10 rida=10 korda)
-			while($stmt->fetch()) {
-				$person=new StdClass();
-				$person->id=$id;
-				$person->Gender=$Gender;
-				$person->Age=$Age;
-				$person->Meal=$MealClass;
-				$person->date=$date;
-				
-				//echo $Color."<br>";
-				array_push($result, $person);
-			}
-			$stmt->close();
-			
-			return $result;
 		
-	
+		//tekitan massiivi
+		$result = array();
+		
+		// tee seda seni, kuni on rida andmeid
+		// mis vastab select lausele
+		while ($stmt->fetch()) {
+			
+			//tekitan objekti
+			$Meal = new StdClass();
+			
+			$Meal->id = $id;
+			$Meal->Gender = $Gender;
+			$Meal->Age = $Age;
+			$Meal->MealClass = $MealClass;
+			$Meal->date = $date;
+			
+			//echo $plate."<br>";
+			// iga kord massiivi lisan juurde nr märgi
+			array_push($result, $Meal);
+		}
+		
+		$stmt->close();
+		
+		
+		return $result;
 	}
+	
 	function getSingle($edit_id){
-		$stmt = $this->connection->prepare("SELECT Gender, Age, Meal, date FROM Calender WHERE id=? AND deleted IS NULL");
+
+		$stmt = $this->connection->prepare("SELECT Gender, Age, MealClass,date  FROM Calender WHERE id=? AND deleted IS NULL");
+
 		$stmt->bind_param("i", $edit_id);
 		$stmt->bind_result($Gender, $Age, $MealClass, $date);
 		$stmt->execute();
@@ -127,55 +136,41 @@ class Meal{
 		return $Meal;
 		
 	}
-	 
-	function savePeople ($Gender, $Age, $MealClass, $date){
-			
-			//käsk
-			$stmt=$this->connection->prepare("INSERT INTO Calender (Gender, Age, MealClass, date) VALUES(?,?,?,?)");
-			
-			$stmt->bind_param("siss",$Gender, $Age, $MealClass, $date);
-			
-			if($stmt->execute()) {
-				echo "Salvestamine õnnestus";
-				
-			} else {
-					echo "ERROR ".$stmt->error;
-			
-			}
-			$stmt->close();	
-	}
+
+	function save ($Gender, $Age, $MealClass, $date) {
+		
+		$stmt = $this->connection->prepare("INSERT INTO Calender (Gender, Age, MealClass, date) VALUES (?, ?, ?, ?)");
 	
-	function getAllPeople () {
-			
-			//käsk
-			$stmt=$this->connection->prepare("
-				SELECT id, Gender, Age, MealClass, date
-				FROM Calender
-			");
-			echo $this->connection->error;
-			$stmt->bind_result($id, $Gender, $Age, $MealClass, $date);
-			$stmt->execute();
-			
-			//array("Eliise", "P")
-			$result=array();
-			//seni kuni on üks rida andmeid saada (10 rida=10 korda)
-			while($stmt->fetch()) {
-				$person=new StdClass();
-					$person->id=$id;
-					$person->Gender=$Gender;
-					$person->Age=$Age;
-					$person->MealClass=$MealClass;
-					$person->date=$date;
-				
-				
-				//echo $Color."<br>";
-				array_push($result, $person);
-			}
-			$stmt->close();
-			
-			return $result;
-			
+		echo $this->connection->error;
+		
+		$stmt->bind_param("sisi", $Gender, $Age, $MealClass, $date );
+		
+		if($stmt->execute()) {
+			echo "salvestamine õnnestus";
+		} else {
+		 	echo "ERROR ".$stmt->error;
 		}
-	
+		
+		$stmt->close();
+		
+		
 	}
+	
+	function update($id, $Gender, $Age, $MealClass, $date ){
+    	
+		$stmt = $this->connection->prepare("UPDATE Calender SET Gender=?, Age=?, MealClass=?, date=? WHERE id=? AND deleted IS NULL");
+		$stmt->bind_param("sisii",$Gender, $Age, $MealClass, $date, $id);
+		
+		// kas õnnestus salvestada
+		if($stmt->execute()){
+			// õnnestus
+			echo "salvestus õnnestus!";
+		}
+		
+		$stmt->close();
+		
+		
+	}
+	
+}
 ?>

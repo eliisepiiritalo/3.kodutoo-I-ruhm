@@ -1,6 +1,6 @@
 <?php
 	
-	require("../function.php");
+	require("../functions.php");
 	
 	require("../class/Helper.class.php");
 	$Helper=new Helper($mysqli);
@@ -60,7 +60,7 @@
 	<input id="Age" name="Age" type="text" value="<?=$Calender->Age;?>"><br><br>
 	
 	<label for="Meal" >Toidukord</label><br>
-	<input id="Meal" name="Meal" type="text" value="<?=$Calender->Meal;?>"><br><br>
+	<input id="Meal" name="Meal" type="text" value="<?=$Calender->MealClass;?>"><br><br>
 	
 	<label for="date" >Kuupäev</label><br>
 	<input id="date" name="date" type="text" value="<?=$Calender->date;?>"><br><br>

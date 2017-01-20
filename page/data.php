@@ -3,7 +3,7 @@
 	require("../functions.php");
 	
 	require("../class/Meal.class.php");
-	$MealClass=new Meal($mysqli);
+	$Meal=new Meal($mysqli);
 	
 	require("../class/Helper.class.php");
 	$Helper=new Helper();
@@ -38,8 +38,8 @@
 	$GenderError="";
 	$Age="";
 	$AgeError="";
-	$Meal="";
-	$MealError="";
+	$MealClass="";
+	$MealClassError="";
 	$Date="";
 	$DateError="";
 	
@@ -53,12 +53,12 @@
 			}
 	}
 	
-	if(isset($_POST["Meal"])) {
-		if(empty($_POST["Meal"])){
-			$MealError="See väli on kohustuslik!";
+	if(isset($_POST["MealClass"])) {
+		if(empty($_POST["MealClass"])){
+			$MealClassError="See väli on kohustuslik!";
 			
 		}else{
-			$Meal=$_POST["Meal"];
+			$Meal=$_POST["MealClass"];
 		}
 	}
 	
@@ -73,13 +73,13 @@
 	//Ühtegi viga ei olnud ja saan kasutaja andmed salvestada
 	if ( isset($_POST["Gender"]) &&
 		isset($_POST["Age"]) &&
-		isset($_POST["Meal"]) &&
+		isset($_POST["MealClass"]) &&
 		isset($_POST["Date"]) &&
 		
 		
 		empty($_POST["GenderError"]) &&
 		empty($_POST["AgeError"]) &&
-		empty($_POST["MealError"]) &&
+		empty($_POST["MealClassError"]) &&
 		empty($_POST["DateError"])  
 
 	  ) {
@@ -88,13 +88,13 @@
 		  
 			$Gender=$Helper->cleanInput($_POST["Gender"]);
 			$Age=$Helper->cleanInput($_POST["Age"]);
-			$Meal=$Helper->cleanInput($_POST["Meal"]);
+			$MealClass=$Helper->cleanInput($_POST["MealClass"]);
 			//$Date=$Helper->cleanInput($_POST["Date"]);
 
 			$date = new Datetime ($_POST['Date']);
 			$date = $date->format('Y-m-d');
 		
-			$MealClass->savePeople($Helper->cleanInput($_POST["Gender"]), $Helper->cleanInput($_POST["Age"]), $Helper->cleanInput($_POST["Meal"]), $Helper->cleanInput($date));
+			$MealClass->savePeople($Helper->cleanInput($_POST["Gender"]), $Helper->cleanInput($_POST["Age"]), $Helper->cleanInput($_POST["MealClass"]), $Helper->cleanInput($date));
 	
 	//header("Location: data.php");
 	//exit();
@@ -125,7 +125,7 @@
 	}
 	
 		//otsisõna funktsiooni sisse
-		$Calender=$MealClass->get($q, $sort, $order);
+		$Calender=$Meal->get($q, $sort, $order);
 	
 	
 ?>
@@ -139,8 +139,6 @@
 	<a href="?logout=1">Logi välja</a>
 
 </p> 
-
-<h1>Salvesta andmed</h1>
 
 <form method="POST">
 
@@ -179,6 +177,14 @@
 	
 	
 
+
+</form>
+<h2>Toidukorrad</h2>
+
+<form>
+	
+	<input type="search" name="q" value="<?=$q;?>">
+	<input type="submit" value="Otsi">
 
 </form>
 
@@ -224,12 +230,12 @@
 				</a>
 			</th>";
 			
-			$MealOrder="ASC";
+			$MealClassOrder="ASC";
 			if(isset($_GET["order"]) && $_GET["order"]=="ASC"){
-				$Meal="DESC";
+				$MealClass="DESC";
 			}
 			$html .="<th>
-				<a href='?=".$q."&sort=Meal&order=".$MealOrder."'>Toidukord
+				<a href='?=".$q."&sort=MealClass&order=".$MealClassOrder."'>Toidukord
 				</a>
 			</th>";
 			
@@ -249,7 +255,7 @@
 				$html .="<td>".$p->id."</td>";
 				$html .="<td>".$p->Gender."</td>";
 				$html .="<td>".$p->Age."</td>";
-				$html .="<td>".$p->Meal."</td>";
+				$html .="<td>".$p->MealClass."</td>";
 				$html .="<td>".$p->date."</td>";
 				
 				$html .= "<td><a class='btn btn-default btn-sm' href='edit.php?id=".$p->id."'><span class='glyphicon glyphicon-pencil'></span>Muuda</a></td>";
